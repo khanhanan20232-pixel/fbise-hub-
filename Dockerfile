@@ -12,7 +12,7 @@ COPY --from=build /app/node_modules ./node_modules
 COPY package.json ./
 COPY src ./src
 COPY views ./views
-COPY public ./public
+COPY fbise-study-hub/public ./public
 # data/ (SQLite) and uploads/ (PDFs) live on the persistent volume
 RUN mkdir -p data uploads && chown -R node:node /app
 USER node
