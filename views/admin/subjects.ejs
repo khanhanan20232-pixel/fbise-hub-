@@ -1,0 +1,69 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div>
+    <h1>Manage Subjects</h1>
+    <p class="muted">Add or remove subjects for each class.</p>
+  </div>
+</div>
+
+<%- include('./_subnav') %>
+
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+<section class="card">
+  <h2>Add subject</h2>
+  <form action="/admin/subjects" method="POST" class="form-inline">
+    <div class="form-group">
+      <label for="class_id">Class</label>
+      <select id="class_id" name="class_id" required>
+        <option value="">Select class…</option>
+        <% classes.forEach(function(c) { %>
+          <option value="<%= c.id %>"><%= c.name %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div class="form-group grow">
+      <label for="name">Subject name</label>
+      <input type="text" id="name" name="name" required minlength="2" maxlength="100" placeholder="e.g. Physics">
+    </div>
+    <div class="form-group grow">
+      <label for="description">Description (optional)</label>
+      <input type="text" id="description" name="description" maxlength="300" placeholder="Short description">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Add subject</button>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  <h2>All subjects</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Subject</th><th>Class</th><th>Description</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <% if (subjects.length) { %>
+          <% subjects.forEach(function(s) { %>
+            <tr>
+              <td class="cell-title"><%= s.name %></td>
+              <td><%= s.class_name %></td>
+              <td><%= s.description || '—' %></td>
+              <td>
+                <form action="/admin/subjects/<%= s.id %>/delete" method="POST" class="inline-form confirm-delete" data-confirm="Delete this subject? Papers and questions linked to it will lose their subject association.">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr><td colspan="4" class="empty">No subjects yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

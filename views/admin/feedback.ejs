@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div>
+    <h1>Feedback</h1>
+    <p class="muted">Messages sent through the contact form.</p>
+  </div>
+</div>
+
+<%- include('./_subnav') %>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>From</th><th>Email</th><th>Message</th><th>Received</th></tr>
+      </thead>
+      <tbody>
+        <% if (items.length) { %>
+          <% items.forEach(function(f) { %>
+            <tr>
+              <td class="cell-title"><%= f.name %></td>
+              <td><%= f.email %></td>
+              <td class="cell-message"><%= f.message %></td>
+              <td><%= new Date(f.created_at).toLocaleString() %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr><td colspan="4" class="empty">No feedback messages yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

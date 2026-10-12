@@ -1,0 +1,70 @@
+<%- include('partials/header') %>
+<%
+function fmtSize(bytes) {
+  if (!bytes) return '';
+  var kb = bytes / 1024;
+  if (kb < 1024) return Math.round(kb) + ' KB';
+  return (kb / 1024).toFixed(1) + ' MB';
+}
+function fmtDate(ts) {
+  try { return new Date(Number(ts)).toLocaleDateString('en-PK', { year: 'numeric', month: 'long', day: 'numeric' }); }
+  catch (e) { return ''; }
+}
+%>
+
+<div class="container section">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/classes/<%= paper.class_slug %>"><%= paper.class_name %></a> › <span><%= paper.title %></span></nav>
+
+  <article class="card paper-detail">
+    <div class="badges">
+      <% if (paper.paper_type === 'model_official') { %>
+        <span class="badge badge-official">✓ Official FBISE Model Paper</span>
+      <% } else if (paper.paper_type === 'model_practice') { %>
+        <span class="badge badge-practice">Practice Paper — not an official FBISE document</span>
+      <% } else { %>
+        <span class="badge badge-past">Past Paper</span>
+      <% } %>
+      <% if (paper.year) { %><span class="badge badge-muted"><%= paper.year %></span><% } %>
+      <% if (paper.session) { %><span class="badge badge-muted"><%= paper.session %></span><% } %>
+    </div>
+
+    <h1><%= paper.title %></h1>
+
+    <dl class="meta-list">
+      <div><dt>Class</dt><dd><a href="/classes/<%= paper.class_slug %>"><%= paper.class_name %></a></dd></div>
+      <% if (paper.subject_name) { %><div><dt>Subject</dt><dd><%= paper.subject_name %></dd></div><% } %>
+      <% if (paper.year) { %><div><dt>Year</dt><dd><%= paper.year %></dd></div><% } %>
+      <% if (paper.session) { %><div><dt>Session</dt><dd><%= paper.session %></dd></div><% } %>
+      <div><dt>Format</dt><dd>PDF</dd></div>
+      <% if (paper.file_size) { %><div><dt>File size</dt><dd><%= fmtSize(paper.file_size) %></dd></div><% } %>
+      <% if (paper.created_at) { %><div><dt>Added</dt><dd><%= fmtDate(paper.created_at) %></dd></div><% } %>
+    </dl>
+
+    <% if (paper.description) { %><p class="paper-description"><%= paper.description %></p><% } %>
+
+    <div class="paper-actions">
+      <% if (paper.file_path) { %>
+        <a href="/papers/<%= paper.id %>/download" class="btn btn-primary">Download PDF</a>
+      <% } %>
+      <% if (currentUser) { %>
+        <button class="btn <%= isSaved ? 'btn-primary' : '' %>" data-saved="<%= isSaved ? '1' : '0' %>" onclick="toggleSavePaper('<%= paper.id %>', this)"><%= isSaved ? 'Saved ✓' : 'Save' %></button>
+      <% } else { %>
+        <a href="/login?next=<%= encodeURIComponent('/papers/' + paper.id) %>" class="btn">Log in to save</a>
+      <% } %>
+    </div>
+
+    <% if (paper.file_path) { %>
+      <div class="pdf-viewer">
+        <iframe src="/papers/<%= paper.id %>/file" title="PDF preview: <%= paper.title %>" class="pdf-frame" loading="lazy"></iframe>
+        <p class="text-muted small">If the preview does not load, <a href="/papers/<%= paper.id %>/download">download the PDF</a> instead.</p>
+      </div>
+    <% } else { %>
+      <div class="notice notice-warning">
+        <strong>This paper has not been uploaded yet.</strong>
+        <p>We only list papers whose files are actually available. Please check back later.</p>
+      </div>
+    <% } %>
+  </article>
+</div>
+
+<%- include('partials/footer') %>

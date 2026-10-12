@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'FBISE Study Hub' %></title>
+  <meta name="description" content="FBISE Study Hub — past papers, model papers, quizzes and study resources for FBISE Classes 9 to 12. Prepare Smart. Practice Better. Achieve More.">
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    // Apply saved theme before first paint to avoid a flash.
+    // The full toggle behaviour lives in /js/app.js; this only sets data-theme early.
+    (function () {
+      try {
+        var t = localStorage.getItem('fbise-theme');
+        document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+      } catch (e) {}
+    })();
+  </script>
+  <script src="/js/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar container" aria-label="Main navigation">
+      <a href="/" class="logo" aria-label="FBISE Study Hub — home">
+        <span class="logo-mark" aria-hidden="true">🎓</span>
+        <span class="logo-text">FBISE Study Hub</span>
+      </a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
+      <div class="nav-links" id="nav-links">
+        <a href="/">Home</a>
+        <a href="/classes">Classes</a>
+        <a href="/past-papers">Past Papers</a>
+        <a href="/model-papers">Model Papers</a>
+        <a href="/quizzes">Quizzes</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+      </div>
+      <% var headerSearchVal = (typeof query !== 'undefined' && query) ? query : ((typeof q !== 'undefined' && q) ? q : ((typeof filters !== 'undefined' && filters && filters.q) ? filters.q : '')); %>
+      <form class="nav-search" action="/search" method="GET" role="search">
+        <input type="search" name="q" placeholder="Search papers, subjects…" aria-label="Search study resources" value="<%= headerSearchVal %>">
+        <button type="submit" class="btn btn-sm">Search</button>
+      </form>
+      <div class="nav-actions">
+        <button id="dark-mode-toggle" class="btn btn-icon" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+        <% if (currentUser) { %>
+          <a href="<%= currentUser.role === 'admin' ? '/admin' : '/dashboard' %>" class="btn btn-primary btn-sm">Dashboard</a>
+          <a href="/logout" class="btn btn-sm">Log out</a>
+        <% } else { %>
+          <a href="/login" class="btn btn-primary btn-sm">Log in</a>
+          <a href="/register" class="btn btn-sm">Sign up</a>
+        <% } %>
+      </div>
+    </nav>
+  </header>
+  <main class="main">

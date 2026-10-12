@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+
+<div class="container section narrow">
+  <h1>Contact us</h1>
+  <p class="lead">Questions, feedback or a paper to report? Send us a message — we read every one.</p>
+
+  <% if (error) { %>
+    <div class="notice notice-error" role="alert"><%= error %></div>
+  <% } %>
+  <% if (message) { %>
+    <div class="notice notice-success" role="status"><%= message %></div>
+  <% } %>
+
+  <form class="card form" method="POST" action="/contact" novalidate>
+    <label>Your name
+      <input type="text" name="name" required minlength="2" maxlength="100" autocomplete="name" placeholder="e.g. Ayesha Khan">
+    </label>
+    <label>Email address
+      <input type="email" name="email" required maxlength="200" autocomplete="email" placeholder="you@example.com">
+    </label>
+    <label>Message
+      <textarea name="message" required minlength="10" maxlength="5000" rows="6" placeholder="Write at least 10 characters…"></textarea>
+    </label>
+    <button type="submit" class="btn btn-primary">Send message</button>
+  </form>
+
+  <p class="text-muted small">FBISE Study Hub is an independent educational resource. It is not officially affiliated with FBISE.</p>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,54 @@
+<%- include('partials/header') %>
+
+<div class="container section">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/classes">Classes</a> › <span><%= cls.name %></span></nav>
+
+  <header class="page-head">
+    <span class="class-tag"><%= cls.tagline || '' %></span>
+    <h1><%= cls.name %></h1>
+    <% if (cls.description) { %><p class="lead"><%= cls.description %></p><% } %>
+  </header>
+
+  <section aria-labelledby="subjects-head">
+    <h2 id="subjects-head">Subjects</h2>
+    <% if (subjects && subjects.length) { %>
+      <div class="grid grid-4">
+        <% subjects.forEach(function(s) { %>
+          <a class="card subject-card" href="/subjects/<%= s.id %>">
+            <h3><%= s.name %></h3>
+            <% if (s.description) { %><p class="card-meta"><%= s.description %></p><% } %>
+            <span class="btn btn-sm">Open subject</span>
+          </a>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <p class="text-muted">Subjects for this class are being added.</p>
+    <% } %>
+  </section>
+
+  <section aria-labelledby="recent-head">
+    <div class="section-head">
+      <h2 id="recent-head">Latest papers</h2>
+      <a href="/past-papers?class=<%= cls.slug %>" class="btn btn-sm">All papers</a>
+    </div>
+    <% if (papers && papers.length) { %>
+      <div class="grid grid-3">
+        <% papers.forEach(function(paper) { %>
+          <%- include('partials/paper-card', { paper: paper }) %>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <p class="text-muted">No papers uploaded for this class yet. Please check back later.</p>
+    <% } %>
+  </section>
+
+  <section class="card quiz-strip" aria-labelledby="quiz-strip-head">
+    <div>
+      <h2 id="quiz-strip-head">Practice quizzes</h2>
+      <p><%= quizCount %> quiz question<%= quizCount === 1 ? '' : 's' %> available for <%= cls.name %>.</p>
+    </div>
+    <a href="/quizzes" class="btn btn-primary">Browse quizzes</a>
+  </section>
+</div>
+
+<%- include('partials/footer') %>

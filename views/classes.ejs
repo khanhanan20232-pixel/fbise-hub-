@@ -1,0 +1,19 @@
+<%- include('partials/header') %>
+
+<div class="container section">
+  <h1>Classes</h1>
+  <p class="lead">Select your class to find subjects, past papers, model papers and quizzes for the FBISE syllabus.</p>
+  <div class="grid grid-4">
+    <% classes.forEach(function(c) { var n = counts[c.id] || { papers: 0, quizzes: 0 }; %>
+      <a class="card class-card" href="/classes/<%= c.slug %>">
+        <span class="class-tag"><%= c.tagline || '' %></span>
+        <h2><%= c.name %></h2>
+        <% if (c.description) { %><p><%= c.description %></p><% } %>
+        <p class="card-meta"><%= n.papers %> papers · <%= n.quizzes %> quiz questions</p>
+        <span class="btn btn-primary btn-sm">Open <%= c.name %></span>
+      </a>
+    <% }); %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

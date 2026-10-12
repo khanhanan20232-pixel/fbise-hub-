@@ -1,0 +1,100 @@
+<%- include('../partials/header') %>
+
+<% var p = paper || {}; %>
+<% var isEdit = !!(p && p.id); %>
+
+<div class="page-head">
+  <div>
+    <h1><%= isEdit ? 'Edit Paper' : 'Upload New Paper' %></h1>
+    <p class="muted"><%= isEdit ? 'Update the paper details or replace its PDF file.' : 'Add a past paper or model paper to the library.' %></p>
+  </div>
+  <a href="/admin/papers" class="btn btn-ghost">Back to papers</a>
+</div>
+
+<%- include('./_subnav') %>
+
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+<form action="<%= isEdit ? '/admin/papers/' + p.id + '/edit' : '/admin/papers/new' %>" method="POST" enctype="multipart/form-data" class="card form">
+  <div class="form-row">
+    <div class="form-group grow">
+      <label for="title">Paper title</label>
+      <input type="text" id="title" name="title" required minlength="3" maxlength="200" value="<%= p.title || '' %>" placeholder="e.g. Physics — Annual Examination 2024">
+    </div>
+    <div class="form-group">
+      <label for="year">Year</label>
+      <input type="number" id="year" name="year" min="2000" max="2030" value="<%= p.year || '' %>" placeholder="2024">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="class_id">Class</label>
+      <select id="class_id" name="class_id" required>
+        <option value="">Select class…</option>
+        <% classes.forEach(function(c) { %>
+          <option value="<%= c.id %>" <%= String(p.class_id) === String(c.id) ? 'selected' : '' %>><%= c.name %> — <%= c.tagline %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="subject_id">Subject</label>
+      <select id="subject_id" name="subject_id">
+        <option value="">Select subject…</option>
+        <% subjects.forEach(function(s) { %>
+          <option value="<%= s.id %>" data-class-id="<%= s.class_id %>" <%= String(p.subject_id) === String(s.id) ? 'selected' : '' %>><%= s.name %></option>
+        <% }); %>
+      </select>
+      <small class="hint">Subjects are filtered by the selected class.</small>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="session">Session</label>
+      <select id="session" name="session">
+        <option value="">Not specified</option>
+        <% ['Annual', 'Supplementary', '2nd Annual'].forEach(function(s) { %>
+          <option value="<%= s %>" <%= p.session === s ? 'selected' : '' %>><%= s %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="paper_type">Paper type</label>
+      <select id="paper_type" name="paper_type" required>
+        <option value="past" <%= p.paper_type === 'past' ? 'selected' : '' %>>Past Paper</option>
+        <option value="model_official" <%= p.paper_type === 'model_official' ? 'selected' : '' %>>Official FBISE Model Paper (verified only)</option>
+        <option value="model_practice" <%= p.paper_type === 'model_practice' ? 'selected' : '' %>>Practice Paper</option>
+      </select>
+      <small class="hint">Use “Official FBISE Model Paper” only for documents verified as genuine FBISE releases.</small>
+    </div>
+    <div class="form-group">
+      <label for="is_published">Status</label>
+      <select id="is_published" name="is_published">
+        <option value="1" <%= (p.is_published === 0 || p.is_published === '0') ? '' : 'selected' %>>Published</option>
+        <option value="0" <%= (p.is_published === 0 || p.is_published === '0') ? 'selected' : '' %>>Draft</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="description">Description</label>
+    <textarea id="description" name="description" rows="3" maxlength="2000" placeholder="Short description of the paper (optional)"><%= p.description || '' %></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="pdf">PDF file</label>
+    <% if (isEdit && p.file_path) { %>
+      <p class="file-info">Current file: <strong><%= p.file_path %></strong><% if (p.file_size) { %> (<%= (p.file_size / 1024 / 1024).toFixed(2) %> MB)<% } %>. Choose a new file below to replace it, or leave empty to keep the current one.</p>
+    <% } %>
+    <input type="file" id="pdf" name="pdf" accept="application/pdf,.pdf" <%= isEdit ? '' : 'required' %>>
+    <small class="hint">PDF only, up to 20 MB.</small>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary"><%= isEdit ? 'Save changes' : 'Upload paper' %></button>
+    <a href="/admin/papers" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+
+<%- include('../partials/footer') %>

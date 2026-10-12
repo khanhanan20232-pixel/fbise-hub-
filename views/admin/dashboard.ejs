@@ -1,0 +1,80 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div>
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Welcome back, <%= currentUser ? currentUser.name : 'Admin' %>. Here is what is happening on the platform.</p>
+  </div>
+</div>
+
+<%- include('./_subnav') %>
+
+<section class="stats-grid" aria-label="Platform statistics">
+  <div class="stat-card"><span class="stat-num"><%= stats.users %></span><span class="stat-label">Students</span></div>
+  <div class="stat-card"><span class="stat-num"><%= stats.papers %></span><span class="stat-label">Papers uploaded</span></div>
+  <div class="stat-card"><span class="stat-num"><%= stats.published %></span><span class="stat-label">Published</span></div>
+  <div class="stat-card"><span class="stat-num"><%= stats.questions %></span><span class="stat-label">Quiz questions</span></div>
+  <div class="stat-card"><span class="stat-num"><%= stats.attempts %></span><span class="stat-label">Quiz attempts</span></div>
+  <div class="stat-card"><span class="stat-num"><%= stats.feedback %></span><span class="stat-label">Feedback messages</span></div>
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <div class="card-head">
+      <h2>Recently uploaded papers</h2>
+      <a href="/admin/papers" class="btn btn-ghost btn-sm">Manage papers</a>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Title</th><th>Class</th><th>Type</th><th>Status</th><th>Added</th></tr>
+        </thead>
+        <tbody>
+          <% if (recentPapers.length) { %>
+            <% recentPapers.forEach(function(p) { %>
+              <tr>
+                <td class="cell-title"><%= p.title %></td>
+                <td><%= p.class_name %></td>
+                <td><span class="badge <%= p.paper_type === 'past' ? 'badge-past' : (p.paper_type === 'model_official' ? 'badge-official' : 'badge-practice') %>"><%= paperTypeLabel(p.paper_type) %></span></td>
+                <td><%= p.is_published ? 'Published' : 'Draft' %></td>
+                <td><%= new Date(p.created_at).toLocaleDateString() %></td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr><td colspan="5" class="empty">No papers uploaded yet. <a href="/admin/papers/new">Upload the first one</a>.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Recent students</h2>
+      <a href="/admin/users" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Class</th><th>Joined</th></tr>
+        </thead>
+        <tbody>
+          <% if (recentUsers.length) { %>
+            <% recentUsers.forEach(function(u) { %>
+              <tr>
+                <td class="cell-title"><%= u.name %></td>
+                <td><%= u.email %></td>
+                <td><%= u.class_level ? 'Class ' + u.class_level : '—' %></td>
+                <td><%= new Date(u.created_at).toLocaleDateString() %></td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr><td colspan="4" class="empty">No student registrations yet.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<%- include('../partials/footer') %>

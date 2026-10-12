@@ -1,0 +1,75 @@
+<%- include('partials/header') %>
+
+<div class="container section">
+  <h1>Model Papers</h1>
+  <p class="lead">Model papers for FBISE Classes 9–12.</p>
+  <div class="notice notice-info">
+    <strong>Official vs practice:</strong> papers marked <span class="badge badge-official">Official Model Paper</span> are issued by FBISE.
+    Papers marked <span class="badge badge-practice">Practice Paper</span> are extra study material and are <strong>not</strong> official FBISE documents.
+  </div>
+
+  <form class="filters card" method="GET" action="/model-papers">
+    <div class="filter-grid">
+      <label>Class
+        <select name="class">
+          <option value="">All classes</option>
+          <% classes.forEach(function(c) { %>
+            <option value="<%= c.slug %>" <%= filters.class === c.slug ? 'selected' : '' %>><%= c.name %></option>
+          <% }); %>
+        </select>
+      </label>
+      <label>Subject
+        <select name="subject">
+          <option value="">All subjects</option>
+          <% classes.forEach(function(c) { %>
+            <optgroup label="<%= c.name %>">
+              <% subjects.filter(function(s) { return s.class_id === c.id; }).forEach(function(s) { %>
+                <option value="<%= s.id %>" <%= filters.subject === s.id ? 'selected' : '' %>><%= s.name %></option>
+              <% }); %>
+            </optgroup>
+          <% }); %>
+        </select>
+      </label>
+      <label>Year / version
+        <select name="year">
+          <option value="">All years</option>
+          <% years.forEach(function(y) { %>
+            <option value="<%= y.year %>" <%= String(filters.year) === String(y.year) ? 'selected' : '' %>><%= y.year %></option>
+          <% }); %>
+        </select>
+      </label>
+      <label>Session
+        <select name="session">
+          <option value="">All sessions</option>
+          <% ['Annual', 'Supplementary', '2nd Annual'].forEach(function(s) { %>
+            <option value="<%= s %>" <%= filters.session === s ? 'selected' : '' %>><%= s %></option>
+          <% }); %>
+        </select>
+      </label>
+      <label class="filter-search">Search
+        <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Paper title or subject…">
+      </label>
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary">Apply filters</button>
+      <a href="/model-papers" class="btn">Clear</a>
+    </div>
+  </form>
+
+  <% if (papers && papers.length) { %>
+    <p class="results-count"><%= papers.length %> paper<%= papers.length === 1 ? '' : 's' %> found.</p>
+    <div class="grid grid-3">
+      <% papers.forEach(function(paper) { %>
+        <%- include('partials/paper-card', { paper: paper }) %>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="empty-state card">
+      <h2>No papers found for these filters.</h2>
+      <p>Try widening your search, or check back later — new papers are added regularly.</p>
+      <a href="/model-papers" class="btn">Clear filters</a>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

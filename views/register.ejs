@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-inner">
+      <a href="/" class="logo"><span aria-hidden="true">🎓</span> FBISE Study Hub</a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/classes">Classes</a>
+        <a href="/past-papers">Past Papers</a>
+        <a href="/model-papers">Model Papers</a>
+        <a href="/quizzes">Quizzes</a>
+        <a href="/about">About</a>
+      </nav>
+      <button type="button" id="theme-toggle" class="btn btn-sm" aria-label="Toggle dark mode">🌓</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card auth-card">
+      <h1>Create your account</h1>
+      <p class="muted">Join FBISE Study Hub to save papers, track quiz scores, and study smarter.</p>
+
+      <% if (error) { %>
+        <div class="alert alert-error" role="alert"><%= error %></div>
+      <% } %>
+
+      <form action="/register" method="POST" id="register-form">
+        <div class="form-group">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" required minlength="3" autocomplete="name"
+                 placeholder="e.g. Ahmed Khan" value="<%= form.name || '' %>">
+        </div>
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" required autocomplete="email"
+                 placeholder="you@example.com" value="<%= form.email || '' %>">
+        </div>
+        <div class="form-group">
+          <label for="class_level">Class</label>
+          <select id="class_level" name="class_level" required>
+            <option value="" disabled <%= !form.class_level ? 'selected' : '' %>>Select your class</option>
+            <option value="9" <%= form.class_level === '9' ? 'selected' : '' %>>Class 9 — SSC Part I</option>
+            <option value="10" <%= form.class_level === '10' ? 'selected' : '' %>>Class 10 — SSC Part II</option>
+            <option value="11" <%= form.class_level === '11' ? 'selected' : '' %>>Class 11 — HSSC Part I (1st Year)</option>
+            <option value="12" <%= form.class_level === '12' ? 'selected' : '' %>>Class 12 — HSSC Part II (2nd Year)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="school">School / College <span class="muted">(optional)</span></label>
+          <input type="text" id="school" name="school" autocomplete="organization"
+                 placeholder="Your school or college name" value="<%= form.school || '' %>">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required minlength="6"
+                 autocomplete="new-password" placeholder="At least 6 characters">
+        </div>
+        <div class="form-group">
+          <label for="confirm">Confirm password</label>
+          <input type="password" id="confirm" name="confirm" required minlength="6"
+                 autocomplete="new-password" placeholder="Repeat your password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="register-btn">Create account</button>
+      </form>
+
+      <p class="auth-links">Already have an account? <a href="/login">Log in</a></p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div><strong>FBISE Study Hub</strong><p class="muted small">Prepare Smart. Practice Better. Achieve More.</p></div>
+      <nav aria-label="Footer"><a href="/about">About</a><a href="/contact">Contact</a><a href="/past-papers">Past Papers</a><a href="/quizzes">Quizzes</a></nav>
+      <p class="muted small">An independent educational resource for FBISE students. Not affiliated with or endorsed by the Federal Board of Intermediate and Secondary Education.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var saved = localStorage.getItem('theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      document.getElementById('theme-toggle').addEventListener('click', function () {
+        var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+      document.getElementById('register-form').addEventListener('submit', function () {
+        var btn = document.getElementById('register-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner spinner-sm" aria-hidden="true"></span>Creating account…';
+      });
+    })();
+  </script>
+</body>
+</html>

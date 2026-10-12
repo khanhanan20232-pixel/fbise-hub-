@@ -1,0 +1,27 @@
+<article class="card paper-card">
+  <div class="card-body">
+    <div class="badges">
+      <% if (paper.paper_type === 'model_official') { %>
+        <span class="badge badge-official">Official Model Paper</span>
+      <% } else if (paper.paper_type === 'model_practice') { %>
+        <span class="badge badge-practice">Practice Paper</span>
+      <% } else { %>
+        <span class="badge badge-past">Past Paper</span>
+      <% } %>
+      <% if (paper.year) { %><span class="badge badge-muted"><%= paper.year %></span><% } %>
+      <% if (paper.session) { %><span class="badge badge-muted"><%= paper.session %></span><% } %>
+    </div>
+    <h3 class="card-title"><a href="/papers/<%= paper.id %>"><%= paper.title %></a></h3>
+    <p class="card-meta">
+      <%= paper.class_name || '' %><% if (paper.subject_name) { %> · <%= paper.subject_name %><% } %>
+    </p>
+    <div class="card-actions">
+      <a href="/papers/<%= paper.id %>" class="btn btn-sm btn-primary">View</a>
+      <% if (paper.file_path) { %>
+        <a href="/papers/<%= paper.id %>/download" class="btn btn-sm">Download</a>
+      <% } else { %>
+        <span class="text-muted small">File not uploaded yet</span>
+      <% } %>
+    </div>
+  </div>
+</article>

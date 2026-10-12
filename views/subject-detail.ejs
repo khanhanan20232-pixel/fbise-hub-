@@ -1,0 +1,79 @@
+<%- include('partials/header') %>
+
+<div class="container section">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/classes">Classes</a> › <a href="/classes/<%= subject.class_slug %>"><%= subject.class_name %></a> › <span><%= subject.name %></span></nav>
+
+  <header class="page-head">
+    <h1><%= subject.name %></h1>
+    <p class="card-meta"><a href="/classes/<%= subject.class_slug %>"><%= subject.class_name %></a></p>
+    <% if (subject.description) { %><p class="lead"><%= subject.description %></p><% } %>
+  </header>
+
+  <section aria-labelledby="papers-head">
+    <h2 id="papers-head">Papers &amp; study material</h2>
+    <% if (papers && papers.length) { %>
+      <div class="paper-list">
+        <% papers.forEach(function(p) { var saved = savedIds.has(p.id); %>
+          <article class="card paper-row">
+            <div class="paper-row-main">
+              <div class="badges">
+                <% if (p.paper_type === 'model_official') { %>
+                  <span class="badge badge-official">Official Model Paper</span>
+                <% } else if (p.paper_type === 'model_practice') { %>
+                  <span class="badge badge-practice">Practice Paper</span>
+                <% } else { %>
+                  <span class="badge badge-past">Past Paper</span>
+                <% } %>
+                <% if (p.year) { %><span class="badge badge-muted"><%= p.year %></span><% } %>
+                <% if (p.session) { %><span class="badge badge-muted"><%= p.session %></span><% } %>
+              </div>
+              <h3><a href="/papers/<%= p.id %>"><%= p.title %></a></h3>
+              <% if (p.description) { %><p class="card-meta"><%= p.description %></p><% } %>
+            </div>
+            <div class="paper-row-actions">
+              <a href="/papers/<%= p.id %>" class="btn btn-sm btn-primary">View</a>
+              <% if (p.file_path) { %>
+                <a href="/papers/<%= p.id %>/download" class="btn btn-sm">Download</a>
+              <% } else { %>
+                <span class="text-muted small">Not uploaded yet</span>
+              <% } %>
+              <% if (currentUser) { %>
+                <button class="btn btn-sm <%= saved ? 'btn-primary' : '' %>" data-saved="<%= saved ? '1' : '0' %>" onclick="toggleSavePaper('<%= p.id %>', this)"><%= saved ? 'Saved ✓' : 'Save' %></button>
+              <% } %>
+            </div>
+          </article>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <div class="empty-state card">
+        <h3>No papers uploaded for this subject yet.</h3>
+        <p>New papers are added regularly — please check back later.</p>
+      </div>
+    <% } %>
+  </section>
+
+  <section aria-labelledby="quiz-head">
+    <div class="section-head">
+      <h2 id="quiz-head">Chapter-wise quizzes</h2>
+      <a href="/quizzes/subject/<%= subject.id %>" class="btn btn-primary btn-sm">Start quiz</a>
+    </div>
+    <p class="card-meta"><%= questions.length %> practice question<%= questions.length === 1 ? '' : 's' %> available.</p>
+    <% if (chapters && chapters.length) { %>
+      <div class="chapter-grid">
+        <% chapters.forEach(function(ch) { %>
+          <a class="card chapter-card" href="/quizzes/subject/<%= subject.id %>?chapter=<%= encodeURIComponent(ch) %>">
+            <h3><%= ch %></h3>
+            <span class="btn btn-sm">Practice</span>
+          </a>
+        <% }); %>
+      </div>
+    <% } else if (questions.length) { %>
+      <p>Questions are not grouped into chapters yet — <a href="/quizzes/subject/<%= subject.id %>">start a mixed quiz</a>.</p>
+    <% } else { %>
+      <p class="text-muted">Quiz questions for this subject are being prepared.</p>
+    <% } %>
+    <p class="text-muted small">Quiz questions are practice material prepared for study purposes. They are not official FBISE papers.</p>
+  </section>
+</div>
+
+<%- include('partials/footer') %>

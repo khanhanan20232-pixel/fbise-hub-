@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-inner">
+      <a href="/" class="logo"><span aria-hidden="true">🎓</span> FBISE Study Hub</a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/classes">Classes</a>
+        <a href="/past-papers">Past Papers</a>
+        <a href="/model-papers">Model Papers</a>
+        <a href="/quizzes">Quizzes</a>
+        <a href="/dashboard" aria-current="page">Dashboard</a>
+        <a href="/logout">Log out</a>
+      </nav>
+      <button type="button" id="theme-toggle" class="btn btn-sm" aria-label="Toggle dark mode">🌓</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <noscript>
+      <div class="alert alert-error" role="alert">
+        Your dashboard needs JavaScript to load your personal data. Please enable JavaScript and reload the page.
+      </div>
+    </noscript>
+
+    <!-- Loading state: shown immediately so the page is never blank -->
+    <div id="dash-loading" class="loading-state" role="status" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Loading your dashboard…</p>
+    </div>
+
+    <!-- Error state: shown if the data request fails -->
+    <div id="dash-error" class="card" hidden>
+      <h2>We couldn't load your dashboard</h2>
+      <p class="muted" id="dash-error-msg">Something went wrong while fetching your data.</p>
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" id="dash-retry">Try again</button>
+        <a class="btn" href="/logout">Log out</a>
+      </div>
+    </div>
+
+    <!-- Populated by JavaScript after /api/dashboard-data resolves -->
+    <div id="dash-content" hidden></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div><strong>FBISE Study Hub</strong><p class="muted small">Prepare Smart. Practice Better. Achieve More.</p></div>
+      <nav aria-label="Footer"><a href="/about">About</a><a href="/contact">Contact</a><a href="/past-papers">Past Papers</a><a href="/quizzes">Quizzes</a></nav>
+      <p class="muted small">An independent educational resource for FBISE students. Not affiliated with or endorsed by the Federal Board of Intermediate and Secondary Education.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var saved = localStorage.getItem('theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      document.getElementById('theme-toggle').addEventListener('click', function () {
+        var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+
+      var loadingEl = document.getElementById('dash-loading');
+      var errorEl = document.getElementById('dash-error');
+      var errorMsg = document.getElementById('dash-error-msg');
+      var contentEl = document.getElementById('dash-content');
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function fmtDate(ts) {
+        try {
+          return new Date(Number(ts)).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch (e) { return ''; }
+      }
+      function paperTypeLabel(t) {
+        return { past: 'Past Paper', model_official: 'Official Model Paper', model_practice: 'Practice Paper' }[t] || t;
+      }
+      function emptyState(text) {
+        return '<div class="empty-state"><p>' + text + '</p></div>';
+      }
+      function statCard(value, label) {
+        return '<div class="card stat-card"><div class="stat-value">' + esc(value) + '</div><div class="stat-label">' + esc(label) + '</div></div>';
+      }
+
+      function render(data) {
+        var user = data.user || {};
+        var cls = data.class || null;
+        var stats = data.stats || {};
+        var html = '';
+
+        // Welcome
+        html += '<section class="card welcome-card"><div>';
+        html += '<h1>Welcome, ' + esc(user.name || 'Student') + '</h1>';
+        html += '<p class="muted">' + (cls ? esc(cls.name) : 'No class selected') +
+                (user.school ? ' · ' + esc(user.school) : '') + '</p>';
+        html += '</div><div class="welcome-actions">' +
+                '<a class="btn btn-sm" href="/settings">Account settings</a>' +
+                '<a class="btn btn-sm" href="/logout">Log out</a></div></section>';
+
+        // Stats
+        html += '<section class="stats-grid" aria-label="Your statistics">';
+        html += statCard(String(stats.papersAvailable != null ? stats.papersAvailable : 0), 'Papers available');
+        html += statCard(String(stats.quizzesTaken != null ? stats.quizzesTaken : 0), 'Quizzes taken');
+        html += statCard(stats.avgScore == null ? '—' : stats.avgScore + '%', 'Average score');
+        html += statCard(String(stats.savedCount != null ? stats.savedCount : 0), 'Saved papers');
+        html += '</section>';
+
+        // Quick links
+        html += '<section><h2>Quick links</h2><div class="btn-row">' +
+                '<a class="btn btn-primary" href="/past-papers">Past papers</a>' +
+                '<a class="btn" href="/model-papers">Model papers</a>' +
+                '<a class="btn" href="/quizzes">Take a quiz</a>' +
+                '<a class="btn" href="/settings">Settings</a></div></section>';
+
+        // Subjects
+        html += '<section><h2>Your subjects</h2>';
+        if (data.subjects && data.subjects.length) {
+          html += '<div class="card-grid">';
+          data.subjects.forEach(function (s) {
+            html += '<a class="card card-link" href="/subjects/' + encodeURIComponent(s.id) + '">' +
+                    '<h3>' + esc(s.name) + '</h3>' +
+                    (s.description ? '<p class="muted small">' + esc(s.description) + '</p>' : '') + '</a>';
+          });
+          html += '</div>';
+        } else {
+          html += emptyState('No subjects are listed for your class yet. Check back soon.');
+        }
+        html += '</section>';
+
+        // Recent papers
+        html += '<section><h2>Recent papers for your class</h2>';
+        if (data.recentPapers && data.recentPapers.length) {
+          html += '<div class="list">';
+          data.recentPapers.forEach(function (p) {
+            html += '<div class="list-item"><div><strong>' + esc(p.title) + '</strong>' +
+                    '<p class="muted small">' + esc(p.subject_name || 'General') + ' · ' +
+                    (p.year != null ? esc(String(p.year)) : '—') + ' · ' + esc(paperTypeLabel(p.paper_type)) + '</p></div>' +
+                    '<div class="list-actions">' +
+                    '<a class="btn btn-sm" href="/papers/' + encodeURIComponent(p.id) + '">View</a>' +
+                    '<a class="btn btn-sm" href="/papers/' + encodeURIComponent(p.id) + '/download">Download</a>' +
+                    '</div></div>';
+          });
+          html += '</div>';
+        } else {
+          html += emptyState('No papers have been uploaded for your class yet.');
+        }
+        html += '</section>';
+
+        // Quiz attempts
+        html += '<section><h2>Recent quiz attempts</h2>';
+        if (data.attempts && data.attempts.length) {
+          html += '<div class="table-wrap"><table class="table"><thead><tr><th>Subject</th><th>Score</th><th>Date</th></tr></thead><tbody>';
+          data.attempts.forEach(function (a) {
+            var pct = a.total ? Math.round((a.score / a.total) * 100) : 0;
+            html += '<tr><td>' + esc(a.subject_name) + '</td>' +
+                    '<td>' + esc(String(a.score)) + ' / ' + esc(String(a.total)) + ' (' + pct + '%)</td>' +
+                    '<td>' + esc(fmtDate(a.completed_at)) + '</td></tr>';
+          });
+          html += '</tbody></table></div>';
+        } else {
+          html += emptyState('You have not taken any quizzes yet. <a href="/quizzes">Start your first quiz</a>.');
+        }
+        html += '</section>';
+
+        // Saved papers
+        html += '<section><h2>Saved papers</h2>';
+        if (data.saved && data.saved.length) {
+          html += '<div class="list">';
+          data.saved.forEach(function (p) {
+            html += '<div class="list-item"><div><strong>' + esc(p.title) + '</strong>' +
+                    '<p class="muted small">' + esc(p.class_name || '') + ' · ' + esc(p.subject_name || 'General') + '</p></div>' +
+                    '<div class="list-actions">' +
+                    '<a class="btn btn-sm" href="/papers/' + encodeURIComponent(p.id) + '">View</a>' +
+                    '<button type="button" class="btn btn-sm btn-danger unsave-btn" data-id="' + esc(p.id) + '">Remove</button>' +
+                    '</div></div>';
+          });
+          html += '</div>';
+        } else {
+          html += emptyState('No saved papers yet. Open any paper and save it for quick access.');
+        }
+        html += '</section>';
+
+        contentEl.innerHTML = html;
+        contentEl.hidden = false;
+
+        contentEl.querySelectorAll('.unsave-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () { unsavePaper(btn); });
+        });
+      }
+
+      function unsavePaper(btn) {
+        var id = btn.getAttribute('data-id');
+        btn.disabled = true;
+        fetch('/api/save-paper/' + encodeURIComponent(id), { method: 'DELETE' })
+          .then(function (res) { if (!res.ok) throw new Error('Could not remove the saved paper.'); return res.json(); })
+          .then(function () {
+            var item = btn.closest('.list-item');
+            if (item) item.remove();
+          })
+          .catch(function () { btn.disabled = false; });
+      }
+
+      function showError(message) {
+        loadingEl.hidden = true;
+        contentEl.hidden = true;
+        errorMsg.textContent = message;
+        errorEl.hidden = false;
+      }
+
+      function loadDashboard() {
+        loadingEl.hidden = false;
+        errorEl.hidden = true;
+        contentEl.hidden = true;
+        fetch('/api/dashboard-data', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+          .then(function (res) {
+            if (res.status === 401) {
+              window.location.href = '/login?next=' + encodeURIComponent('/dashboard');
+              return null;
+            }
+            if (!res.ok) throw new Error('Server returned ' + res.status);
+            return res.json();
+          })
+          .then(function (data) {
+            if (!data) return; // redirecting
+            if (data.error) throw new Error(data.error);
+            loadingEl.hidden = true;
+            render(data);
+          })
+          .catch(function (err) {
+            showError(err && err.message ? err.message : 'Something went wrong while fetching your data. Please check your connection and try again.');
+          });
+      }
+
+      document.getElementById('dash-retry').addEventListener('click', loadDashboard);
+      loadDashboard();
+    })();
+  </script>
+</body>
+</html>

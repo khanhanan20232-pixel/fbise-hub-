@@ -1,0 +1,56 @@
+<%- include('partials/header') %>
+
+<div class="container section">
+  <h1>Search</h1>
+  <form class="search-bar" action="/search" method="GET" role="search">
+    <input type="search" name="q" placeholder="Search subjects, papers…" value="<%= q %>" aria-label="Search study resources">
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
+
+  <% if (q) { %>
+    <h2>Results for “<%= q %>”</h2>
+
+    <section aria-labelledby="papers-results">
+      <h3 id="papers-results">Papers (<%= papers.length %>)</h3>
+      <% if (papers.length) { %>
+        <div class="grid grid-3">
+          <% papers.forEach(function(paper) { %>
+            <%- include('partials/paper-card', { paper: paper }) %>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <p class="text-muted">No papers matched your search.</p>
+      <% } %>
+    </section>
+
+    <section aria-labelledby="subjects-results">
+      <h3 id="subjects-results">Subjects (<%= subjects.length %>)</h3>
+      <% if (subjects.length) { %>
+        <div class="grid grid-4">
+          <% subjects.forEach(function(s) { %>
+            <a class="card subject-card" href="/subjects/<%= s.id %>">
+              <h3><%= s.name %></h3>
+              <p class="card-meta"><%= s.class_name %></p>
+            </a>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <p class="text-muted">No subjects matched your search.</p>
+      <% } %>
+    </section>
+
+    <% if (!papers.length && !subjects.length) { %>
+      <div class="empty-state card">
+        <h3>No results found for “<%= q %>”.</h3>
+        <p>Try a different keyword, or browse by <a href="/classes">class</a>.</p>
+      </div>
+    <% } %>
+  <% } else { %>
+    <div class="empty-state card">
+      <h3>Search the study library</h3>
+      <p>Type a subject, paper title or class name above to find past papers, model papers and subjects.</p>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

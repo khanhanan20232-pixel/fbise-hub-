@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+
+<div class="container section narrow">
+  <div class="empty-state card">
+    <p class="error-code"><%= status || 500 %></p>
+    <h1><%= title || 'Something went wrong' %></h1>
+    <p><%= message || 'An unexpected error occurred. Please try again.' %></p>
+    <div class="paper-actions">
+      <a href="/" class="btn btn-primary">Go to homepage</a>
+      <a href="/classes" class="btn">Browse classes</a>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

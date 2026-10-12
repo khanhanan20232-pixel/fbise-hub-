@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-inner">
+      <a href="/" class="logo"><span aria-hidden="true">🎓</span> FBISE Study Hub</a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/classes">Classes</a>
+        <a href="/past-papers">Past Papers</a>
+        <a href="/model-papers">Model Papers</a>
+        <a href="/quizzes">Quizzes</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logout">Log out</a>
+      </nav>
+      <button type="button" id="theme-toggle" class="btn btn-sm" aria-label="Toggle dark mode">🌓</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card auth-card">
+      <h1>Account settings</h1>
+      <p class="muted">Update your profile information.</p>
+
+      <% if (error) { %>
+        <div class="alert alert-error" role="alert"><%= error %></div>
+      <% } %>
+      <% if (message) { %>
+        <div class="alert alert-success" role="status"><%= message %></div>
+      <% } %>
+
+      <form action="/settings" method="POST" id="settings-form">
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" value="<%= user.email %>" readonly aria-readonly="true">
+          <p class="form-hint">Your email cannot be changed.</p>
+        </div>
+        <div class="form-group">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" required minlength="3"
+                 autocomplete="name" value="<%= user.name %>">
+        </div>
+        <div class="form-group">
+          <label for="class_level">Class</label>
+          <select id="class_level" name="class_level" required>
+            <option value="9" <%= user.class_level === '9' ? 'selected' : '' %>>Class 9 — SSC Part I</option>
+            <option value="10" <%= user.class_level === '10' ? 'selected' : '' %>>Class 10 — SSC Part II</option>
+            <option value="11" <%= user.class_level === '11' ? 'selected' : '' %>>Class 11 — HSSC Part I (1st Year)</option>
+            <option value="12" <%= user.class_level === '12' ? 'selected' : '' %>>Class 12 — HSSC Part II (2nd Year)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="school">School / College <span class="muted">(optional)</span></label>
+          <input type="text" id="school" name="school" autocomplete="organization"
+                 value="<%= user.school || '' %>" placeholder="Your school or college name">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="settings-btn">Save changes</button>
+      </form>
+
+      <p class="auth-links"><a href="/dashboard">Back to dashboard</a></p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div><strong>FBISE Study Hub</strong><p class="muted small">Prepare Smart. Practice Better. Achieve More.</p></div>
+      <nav aria-label="Footer"><a href="/about">About</a><a href="/contact">Contact</a><a href="/past-papers">Past Papers</a><a href="/quizzes">Quizzes</a></nav>
+      <p class="muted small">An independent educational resource for FBISE students. Not affiliated with or endorsed by the Federal Board of Intermediate and Secondary Education.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var saved = localStorage.getItem('theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      document.getElementById('theme-toggle').addEventListener('click', function () {
+        var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+      document.getElementById('settings-form').addEventListener('submit', function () {
+        var btn = document.getElementById('settings-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner spinner-sm" aria-hidden="true"></span>Saving…';
+      });
+    })();
+  </script>
+</body>
+</html>

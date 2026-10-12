@@ -1,0 +1,144 @@
+<%- include('partials/header') %>
+
+<section class="hero">
+  <div class="container hero-inner">
+    <h1>Prepare Smart. Practice Better. Achieve More.</h1>
+    <p class="lead">FBISE Study Hub helps Class 9–12 students prepare for Federal Board examinations with past papers, model papers, chapter-wise quizzes and organised study resources — all in one place.</p>
+    <form class="search-bar" action="/search" method="GET" role="search">
+      <input type="search" name="q" placeholder="Search subjects, past papers, model papers…" value="<%= query %>" aria-label="Search study resources">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    <div class="hero-stats">
+      <div class="stat"><strong><%= pastCount %></strong><span>Past papers</span></div>
+      <div class="stat"><strong><%= modelCount %></strong><span>Model papers</span></div>
+      <div class="stat"><strong><%= quizCount %></strong><span>Quiz questions</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="container section" aria-labelledby="choose-class">
+  <h2 id="choose-class">Choose your class</h2>
+  <div class="grid grid-4">
+    <% classes.forEach(function(c) { %>
+      <a class="card class-card" href="/classes/<%= c.slug %>">
+        <span class="class-tag"><%= c.tagline || '' %></span>
+        <h3><%= c.name %></h3>
+        <% if (c.description) { %><p><%= c.description %></p><% } %>
+        <span class="btn btn-primary btn-sm">View resources</span>
+      </a>
+    <% }); %>
+  </div>
+</section>
+
+<section class="container section" aria-labelledby="popular-subjects">
+  <h2 id="popular-subjects">Popular subjects</h2>
+  <% if (popularSubjects && popularSubjects.length) { %>
+    <div class="grid grid-4">
+      <% popularSubjects.forEach(function(s) { %>
+        <a class="card subject-card" href="/subjects/<%= s.id %>">
+          <h3><%= s.name %></h3>
+          <p class="card-meta"><%= s.class_name %></p>
+          <p class="card-meta"><%= s.paper_count %> papers · <%= s.quiz_count %> quiz questions</p>
+        </a>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <p class="text-muted">Subjects are being added. Please check back soon.</p>
+  <% } %>
+</section>
+
+<% var pastPreview = recentPapers.filter(function(p){ return p.paper_type === 'past'; }).slice(0, 3); %>
+<% var modelPreview = recentPapers.filter(function(p){ return p.paper_type === 'model_official' || p.paper_type === 'model_practice'; }).slice(0, 3); %>
+
+<section class="container section" aria-labelledby="past-papers-home">
+  <div class="section-head">
+    <h2 id="past-papers-home">Past papers</h2>
+    <a href="/past-papers" class="btn btn-sm">Browse all</a>
+  </div>
+  <% if (pastPreview.length) { %>
+    <div class="grid grid-3">
+      <% pastPreview.forEach(function(paper) { %>
+        <%- include('partials/paper-card', { paper: paper }) %>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <p class="text-muted">Past papers are being uploaded. Check back soon.</p>
+  <% } %>
+</section>
+
+<section class="container section" aria-labelledby="model-papers-home">
+  <div class="section-head">
+    <h2 id="model-papers-home">Model papers</h2>
+    <a href="/model-papers" class="btn btn-sm">Browse all</a>
+  </div>
+  <% if (modelPreview.length) { %>
+    <div class="grid grid-3">
+      <% modelPreview.forEach(function(paper) { %>
+        <%- include('partials/paper-card', { paper: paper }) %>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <p class="text-muted">Model papers are being uploaded. Check back soon.</p>
+  <% } %>
+</section>
+
+<section class="cta-band" aria-labelledby="quiz-cta">
+  <div class="container cta-inner">
+    <div>
+      <h2 id="quiz-cta">Test yourself with online quizzes</h2>
+      <p>Chapter-wise multiple-choice practice with instant scoring and answer review — free for every class and subject.</p>
+    </div>
+    <a href="/quizzes" class="btn btn-primary btn-lg">Start a quiz</a>
+  </div>
+</section>
+
+<section class="container section" aria-labelledby="recently-added">
+  <h2 id="recently-added">Recently added resources</h2>
+  <% if (recentPapers && recentPapers.length) { %>
+    <div class="grid grid-3">
+      <% recentPapers.forEach(function(paper) { %>
+        <%- include('partials/paper-card', { paper: paper }) %>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <p class="text-muted">No resources yet. New papers appear here as soon as they are published.</p>
+  <% } %>
+</section>
+
+<section class="container section benefits" aria-labelledby="benefits">
+  <h2 id="benefits">Why students use FBISE Study Hub</h2>
+  <div class="grid grid-4">
+    <div class="card"><h3>📚 Organised by class</h3><p>Every paper and quiz is sorted by class, subject, year and session — no mixed syllabi.</p></div>
+    <div class="card"><h3>📄 Free PDF papers</h3><p>Preview papers in your browser or download them for offline study.</p></div>
+    <div class="card"><h3>📝 Practice quizzes</h3><p>Chapter-wise MCQs with instant scores, correct answers and explanations.</p></div>
+    <div class="card"><h3>📊 Track progress</h3><p>Save papers and review your quiz history from your personal dashboard.</p></div>
+  </div>
+</section>
+
+<section class="container section" aria-labelledby="faq">
+  <h2 id="faq">Frequently asked questions</h2>
+  <div class="faq">
+    <details class="card">
+      <summary>Is FBISE Study Hub free to use?</summary>
+      <p>Yes. Browsing papers, downloading PDFs and taking quizzes are all free. Creating an account is also free and lets you save papers and track quiz scores.</p>
+    </details>
+    <details class="card">
+      <summary>Are the past papers official FBISE papers?</summary>
+      <p>We only label a document as an official FBISE past paper when its authenticity has been verified. Practice material is always clearly marked as a practice paper, never as an official document.</p>
+    </details>
+    <details class="card">
+      <summary>Do I need an account to take quizzes?</summary>
+      <p>No — anyone can take a quiz. With a free account your scores and attempts are saved so you can track your progress over time.</p>
+    </details>
+    <details class="card">
+      <summary>How do I save a paper for later?</summary>
+      <p>Log in, open any paper, and click the “Save” button. Your saved papers appear on your dashboard.</p>
+    </details>
+    <details class="card">
+      <summary>Is this website affiliated with FBISE?</summary>
+      <p>No. FBISE Study Hub is an independent educational resource and is not officially affiliated with the Federal Board of Intermediate and Secondary Education.</p>
+    </details>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

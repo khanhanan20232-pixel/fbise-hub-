@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-inner">
+      <a href="/" class="logo"><span aria-hidden="true">🎓</span> FBISE Study Hub</a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/classes">Classes</a>
+        <a href="/past-papers">Past Papers</a>
+        <a href="/model-papers">Model Papers</a>
+        <a href="/quizzes" aria-current="page">Quizzes</a>
+        <a href="/about">About</a>
+        <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+          <% if (currentUser.role === 'admin') { %><a href="/admin">Admin</a><% } else { %><a href="/dashboard">Dashboard</a><% } %>
+          <a href="/logout">Log out</a>
+        <% } else { %>
+          <a href="/login">Log in</a>
+        <% } %>
+      </nav>
+      <button type="button" id="theme-toggle" class="btn btn-sm" aria-label="Toggle dark mode">🌓</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1>Quiz: <%= subject.name %></h1>
+    <div class="quiz-meta">
+      <span class="badge"><%= subject.class_name %></span>
+      <% if (chapter) { %><span class="badge">Chapter: <%= chapter %></span><% } %>
+      <span class="badge"><%= questions.length %> questions</span>
+      <% if (timerMinutes > 0) { %><span class="badge timer" id="timer-badge">⏱ <span id="timer-display"></span></span><% } %>
+    </div>
+
+    <!-- Active quiz UI -->
+    <div id="quiz-ui">
+      <div class="card">
+        <div class="progress-label" id="progress-label"></div>
+        <div class="progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="1" id="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <h2 id="q-number"></h2>
+        <p id="q-chapter" class="muted small"></p>
+        <p id="q-text" style="font-size: 1.1rem; font-weight: 500;"></p>
+
+        <div id="q-options" role="radiogroup" aria-label="Answer choices"></div>
+
+        <div class="question-nav">
+          <button type="button" class="btn" id="prev-btn">← Previous</button>
+          <button type="button" class="btn btn-primary" id="submit-btn">Submit quiz</button>
+          <button type="button" class="btn" id="next-btn">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submitting state -->
+    <div id="quiz-submitting" class="loading-state" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Checking your answers…</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="quiz-error" class="card" hidden>
+      <h2>Submission failed</h2>
+      <p class="muted" id="quiz-error-msg">Your answers could not be submitted.</p>
+      <button type="button" class="btn btn-primary" id="quiz-retry">Try submitting again</button>
+    </div>
+
+    <!-- Results -->
+    <div id="quiz-result" hidden></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div><strong>FBISE Study Hub</strong><p class="muted small">Prepare Smart. Practice Better. Achieve More.</p></div>
+      <nav aria-label="Footer"><a href="/about">About</a><a href="/contact">Contact</a><a href="/past-papers">Past Papers</a><a href="/quizzes">Quizzes</a></nav>
+      <p class="muted small">An independent educational resource for FBISE students. Not affiliated with or endorsed by the Federal Board of Intermediate and Secondary Education.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var saved = localStorage.getItem('theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      document.getElementById('theme-toggle').addEventListener('click', function () {
+        var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+
+      // NOTE: only the safe question list (no correct answers, no explanations)
+      // is embedded below. Answer data is never sent to the browser before submit.
+      var QUESTIONS = <%- JSON.stringify(questions).replace(/<\//g, '<\\/') %>;
+      var SUBJECT_ID = '<%= subject.id %>';
+      var LETTERS = ['a', 'b', 'c', 'd'];
+
+      var answers = {};      // questionId -> 'a'|'b'|'c'|'d'
+      var index = 0;
+      var submitted = false; // guards against double submission
+      var submitting = false;
+
+      var quizUI = document.getElementById('quiz-ui');
+      var submittingEl = document.getElementById('quiz-submitting');
+      var errorEl = document.getElementById('quiz-error');
+      var errorMsg = document.getElementById('quiz-error-msg');
+      var resultEl = document.getElementById('quiz-result');
+      var prevBtn = document.getElementById('prev-btn');
+      var nextBtn = document.getElementById('next-btn');
+      var submitBtn = document.getElementById('submit-btn');
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function renderQuestion() {
+        var q = QUESTIONS[index];
+        document.getElementById('q-number').textContent = 'Question ' + (index + 1) + ' of ' + QUESTIONS.length;
+        document.getElementById('q-chapter').textContent = q.chapter ? 'Chapter: ' + q.chapter : '';
+        document.getElementById('q-text').textContent = q.question;
+
+        var opts = document.getElementById('q-options');
+        opts.innerHTML = '';
+        LETTERS.forEach(function (letter) {
+          var text = q['option_' + letter];
+          var label = document.createElement('label');
+          label.className = 'quiz-option';
+          var input = document.createElement('input');
+          input.type = 'radio';
+          input.name = 'opt';
+          input.value = letter;
+          input.checked = answers[q.id] === letter;
+          input.setAttribute('aria-label', 'Option ' + letter.toUpperCase());
+          input.addEventListener('change', function () { answers[q.id] = letter; });
+          var span = document.createElement('span');
+          span.innerHTML = '<span class="opt-letter">' + letter.toUpperCase() + '.</span> ' + esc(text);
+          label.appendChild(input);
+          label.appendChild(span);
+          opts.appendChild(label);
+        });
+
+        var pct = ((index + 1) / QUESTIONS.length) * 100;
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('progress-bar').setAttribute('aria-valuenow', String(index + 1));
+        document.getElementById('progress-label').textContent = 'Question ' + (index + 1) + ' of ' + QUESTIONS.length;
+
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === QUESTIONS.length - 1;
+      }
+
+      prevBtn.addEventListener('click', function () {
+        if (index > 0) { index--; renderQuestion(); }
+      });
+      nextBtn.addEventListener('click', function () {
+        if (index < QUESTIONS.length - 1) { index++; renderQuestion(); }
+      });
+
+      function unansweredCount() {
+        var n = 0;
+        QUESTIONS.forEach(function (q) { if (!answers[q.id]) n++; });
+        return n;
+      }
+
+      function doSubmit(auto) {
+        if (submitted || submitting) return; // prevent double submission
+        var unanswered = unansweredCount();
+        if (!auto && unanswered > 0) {
+          if (!window.confirm('You have ' + unanswered + ' unanswered question' + (unanswered === 1 ? '' : 's') + '. Submit anyway?')) return;
+        }
+        submitting = true;
+        submitBtn.disabled = true;
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner spinner-sm" aria-hidden="true"></span>Submitting…';
+
+        fetch('/quizzes/subject/' + encodeURIComponent(SUBJECT_ID) + '/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ answers: answers })
+        })
+          .then(function (res) {
+            if (!res.ok) throw new Error('Server returned ' + res.status);
+            return res.json();
+          })
+          .then(function (data) {
+            if (data.error) throw new Error(data.error);
+            submitted = true;
+            showResults(data);
+          })
+          .catch(function (err) {
+            submitting = false;
+            submitBtn.disabled = false;
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === QUESTIONS.length - 1;
+            submitBtn.textContent = 'Submit quiz';
+            quizUI.hidden = true;
+            submittingEl.hidden = true;
+            errorMsg.textContent = (err && err.message) ? err.message : 'Your answers could not be submitted. Please check your connection and try again.';
+            errorEl.hidden = false;
+          });
+        quizUI.hidden = true;
+        submittingEl.hidden = false;
+        errorEl.hidden = true;
+      }
+
+      submitBtn.addEventListener('click', function () { doSubmit(false); });
+      document.getElementById('quiz-retry').addEventListener('click', function () {
+        errorEl.hidden = true;
+        quizUI.hidden = false;
+        submittingEl.hidden = true;
+        doSubmit(false);
+      });
+
+      function showResults(data) {
+        quizUI.hidden = true;
+        submittingEl.hidden = true;
+        errorEl.hidden = true;
+        var pct = data.total ? Math.round((data.score / data.total) * 100) : 0;
+        var html = '<div class="card score-card">';
+        html += '<h2>Your result</h2>';
+        html += '<div class="score-big">' + esc(String(data.score)) + ' / ' + esc(String(data.total)) + '</div>';
+        html += '<p class="muted">' + pct + '% correct</p>';
+        if (data.note) html += '<p class="small muted">' + esc(data.note) + '</p>';
+        html += '<div class="btn-row" style="justify-content:center;">' +
+                '<button type="button" class="btn btn-primary" id="retake-btn">Retake quiz</button>' +
+                '<a class="btn" href="/quizzes">All quizzes</a>' +
+                '<a class="btn" href="/dashboard">Dashboard</a></div></div>';
+
+        html += '<h2>Review answers</h2>';
+        (data.review || []).forEach(function (r, i) {
+          html += '<div class="review-item ' + (r.correct ? 'review-correct' : 'review-wrong') + '">';
+          html += '<p><strong>Q' + (i + 1) + '.</strong> ' + esc(r.question) + '</p>';
+          if (r.chapter) html += '<p class="muted small">Chapter: ' + esc(r.chapter) + '</p>';
+          LETTERS.forEach(function (letter) {
+            var cls = 'review-opt';
+            if (letter === r.correct_option) cls += ' opt-correct';
+            else if (letter === r.chosen) cls += ' opt-chosen-wrong';
+            html += '<div class="' + cls + '">' + letter.toUpperCase() + '. ' + esc(r['option_' + letter]);
+            if (letter === r.correct_option) html += ' ✓';
+            if (letter === r.chosen && letter !== r.correct_option) html += ' (your answer)';
+            html += '</div>';
+          });
+          if (!r.chosen) html += '<p class="small muted">You did not answer this question.</p>';
+          if (r.explanation) html += '<div class="explanation"><strong>Explanation:</strong> ' + esc(r.explanation) + '</div>';
+          html += '</div>';
+        });
+
+        resultEl.innerHTML = html;
+        resultEl.hidden = false;
+        document.getElementById('retake-btn').addEventListener('click', function () { window.location.reload(); });
+        window.scrollTo(0, 0);
+      }
+
+      // Optional countdown timer
+      var timerMinutes = <%= timerMinutes %>;
+      if (timerMinutes > 0) {
+        var timeLeft = timerMinutes * 60;
+        var display = document.getElementById('timer-display');
+        var badge = document.getElementById('timer-badge');
+        function tick() {
+          var m = Math.floor(timeLeft / 60);
+          var s = timeLeft % 60;
+          display.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+          if (timeLeft <= 60) badge.classList.add('timer-low');
+          if (timeLeft <= 0) {
+            clearInterval(timerId);
+            if (!submitted && !submitting) doSubmit(true); // auto-submit when time runs out
+            return;
+          }
+          timeLeft--;
+        }
+        tick();
+        var timerId = setInterval(tick, 1000);
+      }
+
+      renderQuestion();
+    })();
+  </script>
+</body>
+</html>

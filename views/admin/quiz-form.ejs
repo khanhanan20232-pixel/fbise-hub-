@@ -1,0 +1,91 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div>
+    <h1>Add Quiz Question</h1>
+    <p class="muted">Write a clear practice question with four options.</p>
+  </div>
+  <a href="/admin/quizzes" class="btn btn-ghost">Back to questions</a>
+</div>
+
+<%- include('./_subnav') %>
+
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+<form action="/admin/quizzes/new" method="POST" class="card form">
+  <div class="form-row">
+    <div class="form-group">
+      <label for="class_id">Class</label>
+      <select id="class_id" name="class_id" required>
+        <option value="">Select class…</option>
+        <% classes.forEach(function(c) { %>
+          <option value="<%= c.id %>"><%= c.name %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="subject_id">Subject</label>
+      <select id="subject_id" name="subject_id" required>
+        <option value="">Select subject…</option>
+        <% subjects.forEach(function(s) { %>
+          <option value="<%= s.id %>" data-class-id="<%= s.class_id %>"><%= s.class_name %> — <%= s.name %></option>
+        <% }); %>
+      </select>
+      <small class="hint">Subjects are filtered by the selected class.</small>
+    </div>
+    <div class="form-group">
+      <label for="chapter">Chapter / topic</label>
+      <input type="text" id="chapter" name="chapter" maxlength="150" placeholder="e.g. Kinematics">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="question">Question</label>
+    <textarea id="question" name="question" rows="3" required maxlength="2000" placeholder="Type the question here…"></textarea>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="option_a">Option A</label>
+      <input type="text" id="option_a" name="option_a" required maxlength="500">
+    </div>
+    <div class="form-group">
+      <label for="option_b">Option B</label>
+      <input type="text" id="option_b" name="option_b" required maxlength="500">
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label for="option_c">Option C</label>
+      <input type="text" id="option_c" name="option_c" required maxlength="500">
+    </div>
+    <div class="form-group">
+      <label for="option_d">Option D</label>
+      <input type="text" id="option_d" name="option_d" required maxlength="500">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="correct_option">Correct option</label>
+      <select id="correct_option" name="correct_option" required>
+        <option value="">Select…</option>
+        <option value="a">A</option>
+        <option value="b">B</option>
+        <option value="c">C</option>
+        <option value="d">D</option>
+      </select>
+    </div>
+    <div class="form-group grow">
+      <label for="explanation">Explanation (optional)</label>
+      <textarea id="explanation" name="explanation" rows="2" maxlength="2000" placeholder="Why is this the correct answer?"></textarea>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Add question</button>
+    <a href="/admin/quizzes" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+
+<%- include('../partials/footer') %>

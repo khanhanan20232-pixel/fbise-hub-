@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div>
+    <h1>Students</h1>
+    <p class="muted">Registered accounts. Passwords are never shown here.</p>
+  </div>
+</div>
+
+<%- include('./_subnav') %>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Role</th><th>Class</th><th>School / College</th><th>Joined</th></tr>
+      </thead>
+      <tbody>
+        <% if (users.length) { %>
+          <% users.forEach(function(u) { %>
+            <tr>
+              <td class="cell-title"><%= u.name %></td>
+              <td><%= u.email %></td>
+              <td><span class="pill <%= u.role === 'admin' ? 'pill-warn' : 'pill-on' %>"><%= u.role %></span></td>
+              <td><%= u.class_level ? 'Class ' + u.class_level : '—' %></td>
+              <td><%= u.school || '—' %></td>
+              <td><%= new Date(u.created_at).toLocaleDateString() %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr><td colspan="6" class="empty">No users found.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div>
+    <h1>Quiz Questions</h1>
+    <p class="muted">Practice questions for the quiz system. These are study questions — never label them as official past papers.</p>
+  </div>
+  <a href="/admin/quizzes/new" class="btn btn-primary">+ Add Question</a>
+</div>
+
+<%- include('./_subnav') %>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Question</th><th>Class</th><th>Subject</th><th>Chapter</th><th>Correct</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <% if (questions.length) { %>
+          <% questions.forEach(function(q) { %>
+            <tr>
+              <td class="cell-title"><%= q.question %></td>
+              <td><%= q.class_name %></td>
+              <td><%= q.subject_name %></td>
+              <td><%= q.chapter || '—' %></td>
+              <td><span class="opt-badge"><%= q.correct_option.toUpperCase() %></span> <span class="muted"><%= q['option_' + q.correct_option] %></span></td>
+              <td>
+                <form action="/admin/quizzes/<%= q.id %>/delete" method="POST" class="inline-form confirm-delete" data-confirm="Delete this question?">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr><td colspan="6" class="empty">No questions yet. <a href="/admin/quizzes/new">Add the first one</a>.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,82 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div>
+    <h1>Manage Papers</h1>
+    <p class="muted">Upload, publish and organise past papers and model papers.</p>
+  </div>
+  <a href="/admin/papers/new" class="btn btn-primary">+ Upload Paper</a>
+</div>
+
+<%- include('./_subnav') %>
+
+<% if (filters.uploaded) { %><div class="alert alert-success">Paper uploaded successfully.</div><% } %>
+<% if (filters.updated) { %><div class="alert alert-success">Paper updated successfully.</div><% } %>
+<% if (filters.deleted) { %><div class="alert alert-success">Paper deleted.</div><% } %>
+
+<form method="GET" action="/admin/papers" class="card form-inline" role="search">
+  <div class="form-group">
+    <label for="q">Search</label>
+    <input type="text" id="q" name="q" data-search value="<%= filters.q || '' %>" placeholder="Title or subject…">
+  </div>
+  <div class="form-group">
+    <label for="type">Type</label>
+    <select id="type" name="type">
+      <option value="">All types</option>
+      <option value="past" <%= filters.type === 'past' ? 'selected' : '' %>>Past Paper</option>
+      <option value="model_official" <%= filters.type === 'model_official' ? 'selected' : '' %>>Official Model Paper</option>
+      <option value="model_practice" <%= filters.type === 'model_practice' ? 'selected' : '' %>>Practice Paper</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="class">Class</label>
+    <select id="class" name="class">
+      <option value="">All classes</option>
+      <% classes.forEach(function(c) { %>
+        <option value="<%= c.slug %>" <%= filters.class === c.slug ? 'selected' : '' %>><%= c.name %></option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-secondary">Filter</button>
+    <a href="/admin/papers" class="btn btn-ghost">Reset</a>
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Title</th><th>Class</th><th>Subject</th><th>Year</th><th>Session</th><th>Type</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <% if (papers.length) { %>
+          <% papers.forEach(function(p) { %>
+            <tr>
+              <td class="cell-title"><%= p.title %></td>
+              <td><%= p.class_name %></td>
+              <td><%= p.subject_name || '—' %></td>
+              <td><%= p.year || '—' %></td>
+              <td><%= p.session || '—' %></td>
+              <td><span class="badge <%= p.paper_type === 'past' ? 'badge-past' : (p.paper_type === 'model_official' ? 'badge-official' : 'badge-practice') %>"><%= paperTypeLabel(p.paper_type) %></span></td>
+              <td class="pub-status">
+                <% if (p.is_published) { %><span class="pill pill-on">Published</span><% } else { %><span class="pill pill-off">Draft</span><% } %>
+              </td>
+              <td class="cell-actions">
+                <button type="button" class="btn btn-ghost btn-sm toggle-publish <%= p.is_published ? '' : 'is-off' %>" data-id="<%= p.id %>"><%= p.is_published ? 'Unpublish' : 'Publish' %></button>
+                <a href="/admin/papers/<%= p.id %>/edit" class="btn btn-secondary btn-sm">Edit</a>
+                <form action="/admin/papers/<%= p.id %>/delete" method="POST" class="inline-form confirm-delete" data-confirm="Delete this paper? Its PDF file will also be removed.">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr><td colspan="8" class="empty">No papers found for these filters.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
